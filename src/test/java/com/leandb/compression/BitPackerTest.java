@@ -58,6 +58,38 @@ public class BitPackerTest {
     }
 
     @Test
+    public void testWriteBytesWithStartOffset() throws IOException {
+        byte[] arr = new byte[4];
+        arr[0] = (byte) 0x00;
+        arr[1] = (byte) 0x23;
+        arr[2] = (byte) 0xF3;
+        arr[3] = (byte) 0xF0;
+
+        bitPacker.writeBytes(arr, (short) 10, (short) 18);
+
+        byte[] result = getBytes();
+        Assert.assertEquals(3, result.length);
+        Assert.assertEquals("10001111", ByteUtils.byteToBits(result[0]));
+        Assert.assertEquals("11001111", ByteUtils.byteToBits(result[1]));
+        Assert.assertEquals("11000000", ByteUtils.byteToBits(result[2]));
+
+        reset();
+        bitPacker.writeBytes(arr, (short) 10, (short) 16);
+        result = getBytes();
+        Assert.assertEquals(2, result.length);
+        Assert.assertEquals("10001111", ByteUtils.byteToBits(result[0]));
+        Assert.assertEquals("11001111", ByteUtils.byteToBits(result[1]));
+
+
+        reset();
+        bitPacker.writeBytes(arr, (short) 10, (short) 14);
+        result = getBytes();
+        Assert.assertEquals(2, result.length);
+        Assert.assertEquals("10001111", ByteUtils.byteToBits(result[0]));
+        Assert.assertEquals("11001100", ByteUtils.byteToBits(result[1]));
+    }
+
+    @Test
     public void testwriteInt() throws IOException {
         bitPacker.writeInt(Integer.MAX_VALUE);
         byte[] arr = getBytes();

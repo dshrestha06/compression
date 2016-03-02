@@ -37,11 +37,9 @@ public class BitPacker {
         }else {
             //write to remaining space
             if(bitLength <= currentBitPos)
-                currentByte |= b >>> (currentBitPos - bitLength);
-            else if((byte) (b & (byte) 0x80) == (byte) 0x80) //negative #
-                currentByte |= b >>> (currentBitPos - bitLength);
+                currentByte |= (b & 0xFF) >>> (currentBitPos - bitLength);
             else
-               currentByte |= b >>> (8 + currentBitPos - bitLength);
+               currentByte |= (b & 0xFF) >>> (8 + currentBitPos - bitLength);
             bitLength = (short) (bitLength - 8 + currentBitPos);
             copyCurrentByteToBuffer();
 
@@ -65,7 +63,34 @@ public class BitPacker {
         writeBytes(arr, bitLength);
     }
 
-    private void writeBytes(byte[] arr, short bitLength) throws IOException {
+    public void writeBytes(byte[] arr, short startOffset, short bitLength) throws IOException {
+        int index = 0;
+        while(startOffset >= 8) {
+            index ++;
+            startOffset -= 8;
+        }
+        //write delta bits.
+
+        if( (8-startOffset) <= bitLength)
+            writeBits(arr[index], (short) (8-startOffset));
+        else
+            writeBits(arr[index], bitLength);
+        index++;
+
+        bitLength = (short) (bitLength - (8-startOffset));
+        for(int i=index; i<arr.length && bitLength > 0;i++) {
+            if(bitLength >= 8)
+                writeByte(arr[i]);
+            else {
+                System.out.println(ByteUtils.byteToBits(arr[i]));
+                    writeBits((byte) ((arr[i] & 0xFF) >>> (8 - bitLength)), bitLength);
+            }
+
+            bitLength -=8;
+        }
+    }
+
+    public void writeBytes(byte[] arr, short bitLength) throws IOException {
         int startPos = (int) (arr.length - Math.ceil(bitLength / 8.0));
         for (int i = startPos; i < arr.length; i++) {
             if (bitLength % 8 != 0) {
@@ -80,6 +105,12 @@ public class BitPacker {
                 writeByte(arr[i]);
             }
         }
+    }
+
+    public void writeDouble(double value) throws IOException {
+        byte[] arr = new byte[8];
+        ByteBuffer.wrap(arr).putDouble(value);
+        writeBytes(arr, (short) 64);
     }
 
     public void writeLong(long val) throws IOException {
@@ -104,4 +135,5 @@ public class BitPacker {
             currentBitPos = 0;
         }
     }
+
 }

@@ -19,4 +19,47 @@ public class ByteUtils {
         }
         return new String(hexChars);
     }
+
+
+    public static int leadingZeros(byte[] arr) {
+        int count = 0;
+        int i = 0;
+        do {
+            count = count + leadingZeros(arr[i++]);
+        }while(i<arr.length-1 && count % 8 ==0);
+        return count;
+    }
+
+    public static int leadingZeros(byte b) {
+        int count = 0;
+        for(int i=0;i<=7;i++) {
+            if((byte) (0x80 & (b << i)) == (byte) 0x00) {
+                count ++;
+            }else {
+                break;
+            }
+        }
+        return count;
+    }
+
+    public static int trailingZeros(byte[] arr) {
+        int count = 0;
+        int i = arr.length-1;
+        do {
+            count = count + trailingZeros(arr[i--]);
+        }while(i>=0 && count % 8 ==0);
+        return count;
+    }
+
+    public static int trailingZeros(byte b) {
+        int count = 0;
+        for(int i=0;i<=7;i++) {
+            if((byte) (0x01 & (b >> i)) == (byte) 0x00) {
+                count ++;
+            }else {
+                break;
+            }
+        }
+        return count;
+    }
 }

@@ -20,7 +20,7 @@ public class TimestampStream {
             startTime = timestamp;
         } else {
             long delta = timestamp - previousTimestamp;
-            long deltaOfDelta = delta - lastDelta;
+            long deltaOfDelta = delta - lastDelta;  //delta of delta is same as delta for the second value. Need to consider this when reading.
 
             if(deltaOfDelta == 0) {
                 //if D == 0 then store '0'
@@ -37,11 +37,11 @@ public class TimestampStream {
                 //if D is between [-2047, 2048] store '1110' ’ followed by the value (12 bits)
                 bitPacker.writeBits((byte) 0x1110, (short) 4);
                 bitPacker.writeInt((int) deltaOfDelta, (short) 12);
-
             }else if (deltaOfDelta >=Integer.MIN_VALUE && deltaOfDelta <=Integer.MAX_VALUE) {
                 bitPacker.writeBits((byte) 0x11110, (short) 5);
                 bitPacker.writeInt((int) deltaOfDelta);
             }else {
+                //write long. Gorilla timestamp compression doesnt have a case for this.
                 bitPacker.writeBits((byte) 0x11111, (short) 5);
                 bitPacker.writeLong(deltaOfDelta);
             }
