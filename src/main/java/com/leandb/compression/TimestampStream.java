@@ -2,16 +2,20 @@ package com.leandb.compression;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * Created by danish on 2/27/16.
  */
 public class TimestampStream {
-    long startTime;
-    long previousTimestamp;
-    long lastDelta = 0;
-    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    BitPacker bitPacker = new BitPacker(bos);
+    private long startTime;
+    private long previousTimestamp;
+    private long lastDelta = 0;
+    private BitPacker bitPacker;
+
+    public TimestampStream(OutputStream os) {
+        bitPacker = new BitPacker(os);
+    }
 
     public void addTimestamp(long timestamp) throws IOException {
         //store the first timestamp as is
