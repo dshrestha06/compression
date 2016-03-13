@@ -36,10 +36,7 @@ public class BitPacker {
             currentBitPos += bitLength;
         }else {
             //write to remaining space
-            if(bitLength <= currentBitPos)
-                currentByte |= (b & 0xFF) >>> (currentBitPos - bitLength);
-            else
-               currentByte |= (b & 0xFF) >>> (8 + currentBitPos - bitLength);
+            currentByte |= (b & 0xFF) >>> (currentBitPos + bitLength - 8);
             bitLength = (short) (bitLength - 8 + currentBitPos);
             copyCurrentByteToBuffer();
 

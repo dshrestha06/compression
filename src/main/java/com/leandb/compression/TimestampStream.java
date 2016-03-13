@@ -31,18 +31,18 @@ public class TimestampStream {
                 bitPacker.writeBits((byte) 0x00, (short) 1);
             } else if (deltaOfDelta >=-63 && deltaOfDelta <=64) {
                 //if D is between [-63,64] store '10' followed by the value (7 bit)
-                bitPacker.writeBits((byte) 0x10, (short) 2);
+                bitPacker.writeBits((byte) 0x2, (short) 2);
                 bitPacker.writeInt((int) deltaOfDelta, (short) 7);
             }else if (deltaOfDelta >=-255 && deltaOfDelta <=256) {
                 //if D is between [[-255, 256] store '110' followed by the value (9 bit)
-                bitPacker.writeBits((byte) 0x110, (short) 3);
+                bitPacker.writeBits((byte) 0x6, (short) 3);
                 bitPacker.writeInt((int) deltaOfDelta, (short) 9);
             }else if (deltaOfDelta >=-2047 && deltaOfDelta <=2048) {
                 //if D is between [-2047, 2048] store '1110' ’ followed by the value (12 bits)
-                bitPacker.writeBits((byte) 0x1110, (short) 4);
+                bitPacker.writeBits((byte) 0xE, (short) 4);
                 bitPacker.writeInt((int) deltaOfDelta, (short) 12);
             }else if (deltaOfDelta >=Integer.MIN_VALUE && deltaOfDelta <=Integer.MAX_VALUE) {
-                bitPacker.writeBits((byte) 0x11110, (short) 5);
+                bitPacker.writeBits((byte) 0x1E, (short) 5);
                 bitPacker.writeInt((int) deltaOfDelta);
             }else {
                 //write long. Gorilla timestamp compression doesnt have a case for this.

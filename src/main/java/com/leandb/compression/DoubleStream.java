@@ -2,6 +2,7 @@ package com.leandb.compression;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 
 /**
@@ -12,8 +13,11 @@ public class DoubleStream {
     private byte[] previousXorBytes;
     private boolean started = false;
 
-    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    BitPacker bitPacker = new BitPacker(bos);
+    BitPacker bitPacker;
+    public DoubleStream(OutputStream os) {
+        bitPacker = new BitPacker(os);
+    }
+
 
     public void add(double value) throws IOException {
         byte[] currentBytes = new byte[8];
@@ -34,22 +38,25 @@ public class DoubleStream {
                 bitPacker.writeBits((byte) 0x00, (short) 1);
             } else {
                 byte[] xorWithPrevious = new byte[8];
+
                 boolean meaningfulBitsAligned = calculateXor(previousXorBytes, xor, xorWithPrevious);
 
                 int leadingZeros = ByteUtils.leadingZeros(xor);
                 int trailingZeros = ByteUtils.trailingZeros(xor);
                 int length = 64 - leadingZeros - trailingZeros;
 
+                bitPacker.writeBits((byte) 0x01, (short) 1);
+
                 if(meaningfulBitsAligned) {
                     bitPacker.writeBits((byte) 0x00, (short) 1);
                     //write meaningful xor bits
                     bitPacker.writeBytes(xor, (short) leadingZeros, (short) length);
-                }else {
+                } else {
                     bitPacker.writeBits((byte) 0x01, (short) 1);
                     //length of leading zeros in 5 bits
                     bitPacker.writeInt(leadingZeros, (short) 5);
 
-                    //length of meaninful bits in 6 bits
+                    //length of meaningful bits in 6 bits
                     bitPacker.writeInt(length, (short) 6);
 
                     //write meaningful xor bits

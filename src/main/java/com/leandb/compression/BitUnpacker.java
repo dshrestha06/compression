@@ -18,22 +18,36 @@ public class BitUnpacker {
         hydrate();
         byte[] data;
         if(currentBytePos % 8 == 0) {
-            data  = new byte[8];
-            System.arraycopy(buffer, bufferIndex, data, 0, bufferIndex + 8);
-            bufferIndex = bufferIndex + 8;
+            data  = copyBytes(8);
         }else {
             data = readBytes(64);
         }
         return ByteBuffer.wrap(data).getLong();
     }
 
+    public double readDouble() throws IOException {
+        hydrate();
+        byte[] data;
+        if(currentBytePos % 8 == 0) {
+            data  = copyBytes(8);
+        }else {
+            data = readBytes(64);
+        }
+        return ByteBuffer.wrap(data).getDouble();
+    }
+
+    private byte[] copyBytes(int size) {
+        byte[] data = new byte[size];
+        System.arraycopy(buffer, bufferIndex, data, 0, bufferIndex + size);
+        bufferIndex = bufferIndex + size;
+        return data;
+    }
+
     public int readInt() throws IOException {
         hydrate();
         byte[] data;
         if(currentBytePos % 8 == 0) {
-            data  = new byte[4];
-            System.arraycopy(buffer, bufferIndex, data, 0, bufferIndex + 4);
-            bufferIndex = bufferIndex + 4;
+            data  = copyBytes(4);
         }else {
             data = readBytes(32);
         }
@@ -42,8 +56,25 @@ public class BitUnpacker {
 
     public int readInt(int bits) throws IOException {
         hydrate();
-        byte[] arr = readBytes(bits);
+        byte[] arr = resize(readBytes(bits), 4);
         return ByteBuffer.wrap(arr).getInt();
+    }
+
+    private byte[] resize(byte[] bytes, int size) {
+        if(bytes.length == size)
+            return bytes;
+        else {
+            byte[] target = new byte[size];
+            int startPos = size - bytes.length;
+            for(int i = 0; i<target.length;i++) {
+                if(i<startPos) {
+                    target[i] = 0x00;
+                }else if(i >= startPos) {
+                    target[i] = bytes[i-startPos];
+                }
+            }
+            return target;
+        }
     }
 
 
@@ -109,10 +140,10 @@ public class BitUnpacker {
             length = length - length % 8;
         }
 
-        do {
+        while(length > 0) {
             toReturn[i++] = readByte();
             length = length - 8;
-        }while(length > 0);
+        };
 
 
         return toReturn;
@@ -130,5 +161,17 @@ public class BitUnpacker {
         bufferIndex++;
         currentBytePos = 0;
         hydrate(); //hydrate if bufferIndex is beyond the buffered array limit
+    }
+
+    public boolean hasNext() throws IOException {
+        hydrate();
+
+        if(bufferIndex >= bufferRead && currentBytePos %8 == 0) {
+            return in.available() > 0;
+        }else if(bufferIndex >= (bufferRead -1 )) {
+            return in.available() > 0;
+        }
+
+        return true;
     }
 }

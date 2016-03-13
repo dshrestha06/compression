@@ -1,5 +1,7 @@
 package com.leandb.compression;
 
+import java.nio.ByteBuffer;
+
 /**
  * Created by danish on 2/28/16.
  */
@@ -44,10 +46,12 @@ public class ByteUtils {
 
     public static int trailingZeros(byte[] arr) {
         int count = 0;
+        int lastTrailingZeros = 0;
         int i = arr.length-1;
         do {
-            count = count + trailingZeros(arr[i--]);
-        }while(i>=0 && count % 8 ==0);
+            lastTrailingZeros = trailingZeros(arr[i--]);
+            count = count + lastTrailingZeros;
+        }while(i>=0 && lastTrailingZeros==8);
         return count;
     }
 
@@ -61,5 +65,19 @@ public class ByteUtils {
             }
         }
         return count;
+    }
+
+
+
+    public static void print(double v) {
+        byte[] arr = new byte[8];
+        ByteBuffer.wrap(arr).putDouble(v);
+        printBytes(arr);
+    }
+
+    public static void printBytes(byte[] arr) {
+        for(byte b : arr)
+            System.out.print(ByteUtils.byteToBits(b) + " ");
+        System.out.println("");
     }
 }

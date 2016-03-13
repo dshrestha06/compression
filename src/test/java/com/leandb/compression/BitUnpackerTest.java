@@ -1,6 +1,5 @@
 package com.leandb.compression;
 
-import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,6 +46,23 @@ public class BitUnpackerTest {
     }
 
     @Test
+    public void readInt() throws IOException {
+        byte[] arr = new byte[4];
+        ByteBuffer.wrap(arr).putInt(44);
+        BitUnpacker unpacker = new BitUnpacker(new ByteArrayInputStream(arr));
+        Assert.assertEquals(44, unpacker.readInt());
+    }
+
+
+    @Test
+    public void readDouble() throws IOException {
+        byte[] arr = new byte[8];
+        ByteBuffer.wrap(arr).putDouble(33.4);
+        BitUnpacker unpacker = new BitUnpacker(new ByteArrayInputStream(arr));
+        Assert.assertTrue(33.4 == unpacker.readDouble());
+    }
+
+    @Test
     public void readBit() throws IOException {
         byte bit = unpacker.readBit();
         Assert.assertEquals("00000001", ByteUtils.byteToBits(bit));
@@ -89,5 +105,33 @@ public class BitUnpackerTest {
         byte bit = unpacker.readBit();
         Assert.assertEquals("00000001", ByteUtils.byteToBits(bit));
         Assert.assertEquals(23L, unpacker.readLong());
+    }
+
+    @Test
+    public void readDoubleOverflow() throws IOException {
+        bos = new ByteArrayOutputStream();
+        bitPacker = new BitPacker(bos);
+        bitPacker.writeBits((byte) 0x01, (short) 1);
+        bitPacker.writeDouble(22.2);
+        bitPacker.flush();
+
+        unpacker= new BitUnpacker(new ByteArrayInputStream(bos.toByteArray()));
+        byte bit = unpacker.readBit();
+        Assert.assertEquals("00000001", ByteUtils.byteToBits(bit));
+        Assert.assertTrue(22.2 == unpacker.readDouble());
+    }
+
+    @Test
+    public void readIntOverflow() throws IOException {
+        bos = new ByteArrayOutputStream();
+        bitPacker = new BitPacker(bos);
+        bitPacker.writeBits((byte) 0x01, (short) 1);
+        bitPacker.writeInt(43);
+        bitPacker.flush();
+
+        unpacker= new BitUnpacker(new ByteArrayInputStream(bos.toByteArray()));
+        byte bit = unpacker.readBit();
+        Assert.assertEquals("00000001", ByteUtils.byteToBits(bit));
+        Assert.assertEquals(43, unpacker.readInt());
     }
 }
